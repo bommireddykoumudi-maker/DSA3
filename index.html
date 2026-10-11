@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RouteFlow | Delivery Route Optimizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">RF</div>
+      <div><strong>RouteFlow</strong><span>Delivery Planning</span></div>
+    </div>
+
+    <nav class="main-nav">
+      <button class="nav-item active" data-section="dashboard"><span>⌂</span> Dashboard</button>
+      <button class="nav-item" data-section="deliveries"><span>▣</span> Deliveries</button>
+      <button class="nav-item" data-section="vehicles"><span>▰</span> Vehicles</button>
+      <button class="nav-item" data-section="routes"><span>↗</span> Optimized Routes</button>
+      <button class="nav-item" data-section="performance"><span>◒</span> Performance</button>
+    </nav>
+
+    <div class="sidebar-note">
+      <span class="note-icon">✓</span>
+      <div><b>Ready to optimize</b><small>Enter your delivery data and run the planner.</small></div>
+    </div>
+    <div class="sidebar-footer">Graph-based delivery planning</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="breadcrumb">Operations / <span id="sectionLabel">Dashboard</span></div>
+        <h1>Delivery Route Optimizer</h1>
+      </div>
+      <div class="top-actions">
+        <span class="date" id="todayDate"></span>
+        <button class="icon-btn" id="refreshBtn" title="Refresh current data">↻</button>
+      </div>
+    </header>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="page-section active-section">
+      <div class="hero">
+        <div>
+          <div class="eyebrow">SMART ROUTE PLANNING</div>
+          <h2>Plan every delivery.<br><span>Drive a smarter route.</span></h2>
+          <p>Enter stops, package weights, delivery windows and vehicles. The route engine assigns deliveries and builds practical routes automatically.</p>
+        </div>
+        <button class="primary-btn" id="optimizeBtn">⚡ Optimize Routes</button>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-icon blue">▣</div><div><span>Total Deliveries</span><strong id="deliveryCount">0</strong><small id="deliverySub">Live input</small></div></div>
+        <div class="kpi"><div class="kpi-icon purple">▰</div><div><span>Active Vehicles</span><strong id="vehicleCount">0</strong><small id="vehicleSub">Live fleet</small></div></div>
+        <div class="kpi"><div class="kpi-icon green">↗</div><div><span>Optimized Distance</span><strong id="distanceValue">0 km</strong><small>Calculated from route graph</small></div></div>
+        <div class="kpi"><div class="kpi-icon orange">◷</div><div><span>Estimated Completion</span><strong id="timeValue">0 min</strong><small>Slowest active vehicle</small></div></div>
+        <div class="kpi"><div class="kpi-icon teal">⛽</div><div><span>Fuel Estimate</span><strong id="fuelValue">0 L</strong><small>All active vehicles</small></div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-head"><div><h3>Live Route Overview</h3><p>Each route is generated from the current delivery and fleet data.</p></div><span class="live-pill"><i></i> LIVE</span></div>
+          <div id="routeOverview" class="route-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div><h3>Optimization Summary</h3><p>What the route engine is using for this run.</p></div></div>
+          <div class="engine-card">
+            <div class="engine-row"><span>Network model</span><b>Weighted graph</b></div>
+            <div class="engine-row"><span>Route method</span><b>Nearest Neighbor</b></div>
+            <div class="engine-row"><span>Vehicle assignment</span><b>Capacity-based</b></div>
+            <div class="engine-row"><span>Delivery windows</span><b id="windowStatus">Checked automatically</b></div>
+            <div class="engine-row"><span>Constraint status</span><b id="constraintBadge" class="status-pending">Pending</b></div>
+          </div>
+          <div class="network-preview">
+            <span>Warehouse</span><i></i><span>Hafeezpet</span><i></i><span>Miyapur</span><i></i><span>Kondapur</span><i></i><span>Gachibowli</span>
+          </div>
+          <small class="muted">Distances in this project network are used by the DSA route engine. Travel time and fuel are calculated automatically.</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- DELIVERIES -->
+    <section id="deliveries" class="page-section">
+      <div class="page-title">
+        <div><div class="eyebrow">INPUT DATA</div><h2>Delivery Stops</h2><p>Add real delivery locations, package weights and customer time windows.</p></div>
+        <button class="primary-btn" id="addDeliveryBtn">＋ Add Delivery</button>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div><h3>Delivery Plan</h3><p>Route distance, travel time and fuel are calculated after optimization.</p></div><button class="secondary-btn" id="optimizeFromDeliveries">⚡ Optimize</button></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Delivery location</th><th>Package</th><th>Time window</th><th>Assigned vehicle</th><th>Status</th><th></th></tr></thead>
+            <tbody id="deliveryTable"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="deliveryEmpty">No deliveries yet. Click <b>Add Delivery</b> to start.</div>
+      </div>
+    </section>
+
+    <!-- VEHICLES -->
+    <section id="vehicles" class="page-section">
+      <div class="page-title">
+        <div><div class="eyebrow">FLEET MANAGEMENT</div><h2>Vehicles</h2><p>Configure the vehicles available for delivery assignment.</p></div>
+        <button class="primary-btn" id="addVehicleBtn">＋ Add Vehicle</button>
+      </div>
+      <div class="vehicle-grid" id="vehicleGrid"></div>
+    </section>
+
+    <!-- ROUTES -->
+    <section id="routes" class="page-section">
+      <div class="page-title">
+        <div><div class="eyebrow">OPTIMIZED OUTPUT</div><h2>Optimized Routes</h2><p>Automatically generated from your current deliveries, vehicle capacities and time windows.</p></div>
+        <button class="primary-btn" id="optimizeFromRoutes">⚡ Re-optimize</button>
+      </div>
+      <div id="optimizedRoutes" class="route-cards"></div>
+    </section>
+
+    <!-- PERFORMANCE -->
+    <section id="performance" class="page-section">
+      <div class="page-title"><div><div class="eyebrow">ROUTE ANALYTICS</div><h2>Performance Report</h2><p>Automatically calculated from the latest optimization run.</p></div></div>
+      <div class="performance-grid">
+        <div class="metric-card"><span>Route Distance</span><strong id="performanceDistance">0 km</strong><small>Total across vehicle routes</small></div>
+        <div class="metric-card"><span>Completion Time</span><strong id="performanceTime">0 min</strong><small>When the final active vehicle finishes</small></div>
+        <div class="metric-card"><span>Fuel Used</span><strong id="performanceFuel">0 L</strong><small>Estimated across all vehicles</small></div>
+        <div class="metric-card"><span>Constraint Status</span><strong id="performanceConstraint">—</strong><small>Capacity + delivery-window checks</small></div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-head"><div><h3>Optimization Summary</h3><p>A simple direct-route baseline is used as a reference.</p></div></div>
+          <div class="summary-row"><span>Reference distance</span><b id="baselineDistance">—</b></div>
+          <div class="summary-row"><span>Optimized distance</span><b id="summaryDistance">—</b></div>
+          <div class="summary-row"><span>Distance saved</span><b id="savedDistance">—</b></div>
+          <div class="summary-row"><span>Reference improvement</span><b id="improvement">—</b></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>Run Details</h3><p>Useful information for your project demonstration.</p></div></div>
+          <div class="detail-list"><div><span>Route method</span><b id="algorithmName">—</b></div><div><span>Last optimized</span><b id="lastRun">Not yet run</b></div><div><span>Assigned deliveries</span><b id="assignedCount">—</b></div><div><span>Unassigned deliveries</span><b id="unassignedCount">—</b></div><div><span>Average speed assumption</span><b id="speedAssumption">40 km/h</b></div><div><span>Fuel efficiency assumption</span><b id="fuelAssumption">15 km/L</b></div></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>RouteFlow • Delivery Route Optimizer • Intelligent delivery planning</footer>
+  </main>
+</div>
+
+<!-- Add vehicle -->
+<div class="modal" id="vehicleModal">
+  <div class="modal-box">
+    <div class="modal-head"><div><h3>Add Vehicle</h3><p>Add a vehicle to the available delivery fleet.</p></div><button class="close-btn" data-close="vehicleModal">×</button></div>
+    <label>Vehicle ID<input id="vehicleIdInput" placeholder="V-03"></label>
+    <label>Capacity (kg)<input id="vehicleCapacityInput" type="number" min="1" step="1" placeholder="120"></label>
+    <div class="modal-actions"><button class="secondary-btn" data-close="vehicleModal">Cancel</button><button class="primary-btn" id="saveVehicleBtn">Add Vehicle</button></div>
+  </div>
+</div>
+
+<!-- Add delivery -->
+<div class="modal" id="deliveryModal">
+  <div class="modal-box">
+    <div class="modal-head"><div><h3>Add Delivery</h3><p>Only enter delivery information. Route metrics are calculated automatically.</p></div><button class="close-btn" data-close="deliveryModal">×</button></div>
+    <label>Delivery location
+      <select id="deliveryLocationInput">
+        <option value="Hafeezpet">Hafeezpet</option>
+        <option value="Miyapur">Miyapur</option>
+        <option value="Kondapur">Kondapur</option>
+        <option value="Gachibowli">Gachibowli</option>
+        <option value="Madhapur">Madhapur</option>
+      </select>
+    </label>
+    <label>Package weight (kg)<input id="deliveryWeightInput" type="number" min="0.1" step="0.1" placeholder="20"></label>
+    <div class="form-row"><label>Delivery window starts<input id="windowStartInput" type="time" value="09:00"></label><label>Delivery window ends<input id="windowEndInput" type="time" value="11:00"></label></div>
+    <div class="modal-hint">The system calculates route distance, travel time, fuel use and vehicle assignment automatically.</div>
+    <div class="modal-actions"><button class="secondary-btn" data-close="deliveryModal">Cancel</button><button class="primary-btn" id="saveDeliveryBtn">Add Delivery</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><b id="toastTitle">Success</b><span id="toastText"></span></div>
+<script src="script.js"></script>
+</body>
+</html>
